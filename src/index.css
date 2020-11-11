@@ -1,13 +1,41 @@
+* {
+  box-sizing: border-box;
+  font-size: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary: #e0bb20;
+  --primary-light: #ecd67a;
+  --secondary: #efefef;
+  --secondary-dark: #333333;
+  --secondary-light: #e0e0e0;
+}
+
+@import "./css/typography.css";
+@import "./css/components.css";
+@import "./css/flex.css";
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  /* font-size: 1rem; */
+
+  font-family: "Poppins", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.padded-container {
+  padding: 3rem 9rem;
+}
+
+@media screen and (max-width: 960px) {
+  * {
+    font-size: 6px;
+    /* overflow-x: hidden; */
+  }
+  .padded-container {
+    padding: 6rem 2rem;
+  }
 }

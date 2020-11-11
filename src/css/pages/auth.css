@@ -1,0 +1,70 @@
+.auth-grid {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 2fr 0.7fr;
+  grid-column-gap: 10rem;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-right: 10rem;
+  transition: all 300ms;
+}
+
+.auth-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  grid-row: 1/-1;
+}
+
+.add {
+  animation: slideRight 400ms ease;
+}
+
+.remove {
+  animation: slideLeft 400ms ease;
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 1;
+    /* transform: translateX(0); */
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+    /* transform: translateX(-30%); */
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+    /* transform: translateX(20%); */
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    /* transform: translateX(0); */
+  }
+}
+
+@media (max-width: 960px) {
+  .auth-grid {
+    overflow: auto;
+    padding: 0 2rem;
+    grid-template-columns: 1fr;
+    grid-row-gap: 0rem;
+    grid-column-gap: 0;
+  }
+
+  .auth-img {
+    height: 0;
+    display: none;
+    visibility: hidden;
+  }
+}

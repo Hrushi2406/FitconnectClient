@@ -1,0 +1,23 @@
+.list-tile {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.select-chip {
+  justify-self: end;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .list-tile {
+    grid-template-columns: repeat(1, 1fr);
+    background: var(--secondary);
+    border-radius: 1.2rem;
+    margin-bottom: 2rem;
+    padding: 2rem;
+  }
+
+  .list-tile .spaced-between {
+    margin: 2rem 0;
+  }
+}

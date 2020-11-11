@@ -1,0 +1,9 @@
+.header-div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.header {
+  /* font-family: "Poppins";
+  font-weight: 500; */
+}

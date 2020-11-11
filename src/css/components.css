@@ -1,0 +1,66 @@
+@import "./button.css";
+@import "./margin_padding.css";
+@import "./spacing.css";
+@import "./colors.css";
+@import "./grid.css";
+@import "./card.css";
+@import "./slider.css";
+@import "./dialog.css";
+@import "./chipbox.css";
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.note {
+  border-radius: 1.2rem;
+  text-align: center;
+}
+
+.h-divider {
+  width: 100%;
+  height: 1px;
+  /* color: var(--secondary); */
+  /* background: var(--secondary-); */
+}
+
+input {
+  /* display: block; */
+  outline: none;
+  border: none;
+  font-size: 2rem;
+  border-radius: 1.2rem;
+  width: "100%";
+  height: 40px;
+  font-family: "Poppins";
+  font-size: 1.8rem;
+  padding: 0 2rem;
+  background: var(--secondary);
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box; /* Firefox, other Gecko */
+  box-sizing: border-box;
+}
+
+input::placeholder {
+  text-align: center;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.chip {
+  border-radius: 10rem;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+}

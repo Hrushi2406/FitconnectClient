@@ -1,0 +1,25 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-column-gap: 5rem;
+  grid-row-gap: 2rem;
+}
+
+.grid-view {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-column-gap: 5rem;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(1, 1fr);
+    grid-column-gap: 0rem;
+    grid-row-gap: 0rem;
+  }
+  .grid-view {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 2rem;
+  }
+}
