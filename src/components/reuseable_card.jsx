@@ -46,10 +46,12 @@ function ReuseableCard({
           >
             {button1}
           </button>
-
+          {button2 != "" ?
           <button className="padded-btn" onClick={onButton2Click}>
             {button2}
           </button>
+          : <div></div>
+          }
         </div>
       </div>
     </div>

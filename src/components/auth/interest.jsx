@@ -1,10 +1,25 @@
 import React, { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
+import { getToken } from "../../utils/authorization";
+import { Redirect, useHistory } from "react-router-dom";
 import Chipbox from "../chipbox";
 
 function Interests(props) {
   const [className, setclassName] = useState("");
   const [interests, setInterests] = useState([]);
+  const [addInterests, { data, error, loading }] = useMutation(INTEREST_QUERY);
 
+  console.log(getToken());
+  const handleClick = async (e) => {
+    e.preventDefault();
+    try {
+      await addInterests({
+        variables: { interests: interests },
+      });
+
+      window.location.replace("/");
+    } catch (err) {}
+  };
   const addToList = (interest) => {
     if (!interests.includes(interest)) {
       setInterests([...interests, interest]);
@@ -48,10 +63,37 @@ function Interests(props) {
       </div>
 
       <div className="spacing-4"></div>
-      <button className="fullWidth">Next</button>
+      {loading ? (
+        <button className="fullWidth">Loading</button>
+      ) : (
+          <button className="fullWidth" onClick={handleClick}>
+            NEXT
+          </button>
+        )
+      }
+
+      {error ? (
+        <React.Fragment>
+          <div className="spacing-1"></div>
+          <p style={{ fontSize: "1.5rem", color: "red" }}>{error.message}</p>
+          <div className="spacing-1"></div>
+        </React.Fragment>
+      ) : (
+          <React.Fragment>
+            <div className="spacing-2"></div>
+          </React.Fragment>
+        )
+      }
+
       <div className="spacing-2"></div>
     </div>
   );
 }
+
+const INTEREST_QUERY = gql`
+  mutation Interests($interests: [String]) {
+    addInterests(interests: $interests)
+  }
+`;
 
 export default Interests;

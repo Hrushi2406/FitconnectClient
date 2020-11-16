@@ -6,9 +6,9 @@ import Slider from "../slider";
 import "../../css/components/trainer_dialog.css";
 
 function TrainerDialog({ openDialog, close, filterInfo, filter }) {
-  const [maxDistance, setmaxDistance] = useState(1);
-  const [minRating, setminRating] = useState(70);
-  const [maxStartPrice, setmaxStartPrice] = useState(10);
+  const [maxDistance, setmaxDistance] = useState(100);
+  const [minRating, setminRating] = useState(0);
+  const [maxStartPrice, setmaxStartPrice] = useState(100);
   const [maxAge, setmaxAge] = useState(60);
 
   const [interests, setInterests] = useState([]);

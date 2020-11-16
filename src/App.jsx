@@ -9,7 +9,7 @@ import UserProfile from "./pages/user_profile";
 import { ApolloProvider } from "@apollo/client";
 import client from "./config/client";
 import MyTrainers from "./pages/my_trainers";
-import PaymentsPage from "./css/pages/payments_page";
+import PaymentsPage from "./pages/payments_page";
 import ProtectedRoute from "./components/auth/protected_route";
 
 function App() {

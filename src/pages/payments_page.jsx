@@ -1,8 +1,8 @@
 import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import React, { useEffect, useState } from "react";
-import ListTile from "../../components/list_tile";
-import Note from "../../components/note";
-import ReuseableCard from "../../components/reuseable_card";
+import ListTile from "../components/list_tile";
+import Note from "../components/note";
+import ReuseableCard from "../components/reuseable_card";
 
 const QUERY = gql`
   query {
@@ -23,13 +23,38 @@ const QUERY = gql`
       }
     }
     myPayments {
+      partner {
+        userId
+        name
+        bio
+        imageUrl
+      }
       trainer {
         name
         category
       }
       forPlan {
+        planId
         title
         type
+        price
+      }
+      friendship {
+        paid
+      }
+    }
+    me {
+      userId
+    }
+    myTrainers {
+      forPlan {
+        type
+      }
+      trainer {
+        name
+        category
+      }
+      sub {
         price
       }
     }
@@ -48,10 +73,17 @@ const DECLINE_REQUEST = gql`
   }
 `;
 
+const PAY = gql`
+  mutation PayInPair($partnerId: String, $planId: String, $duration: String, $price: Int) {
+    payInPair(partnerId: $partnerId, planId: $planId, duration: $duration, price: $price)
+  }
+`;
+
 function PaymentsPage() {
   const [a, { data, error, loading }] = useLazyQuery(QUERY);
   const [acceptRequest] = useMutation(ACCEPT_REQUEST);
   const [declineRequest] = useMutation(DECLINE_REQUEST);
+  const [payInPair] = useMutation(PAY);
   const [dummy, setdummy] = useState("");
 
   useEffect(async () => {
@@ -76,11 +108,21 @@ function PaymentsPage() {
     }
   };
 
+  const handlePayment = async (partnerId, planId, duration, price) => {
+    try {
+      await payInPair({ variables: { partnerId: partnerId, planId: planId, duration: duration, price: price } });
+      console.log('paid');
+      window.location.reload();
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
   if (error) return <div className="center">{error.message}</div>;
   if (loading) return <div className="center">Loading...</div>;
   if (!data) return <div></div>;
 
-  const { pairingRequests, myPayments } = data;
+  const { pairingRequests, myPayments, me, myTrainers } = data;
 
   return (
     <div className="padded-container">
@@ -123,35 +165,46 @@ function PaymentsPage() {
         <div></div>
       )}
 
-      {/* PAIRING REQUESTS */}
+      {/* PENDING PAYMENTS */}
       <div className="mb4">
-        <h5 className="mb2">Pending Payments</h5>
-        <ReuseableCard
-          className="mb3"
-          title="Pratik Mundhe"
-          chipText="Maps"
-          chipBackground="primary"
-          heading1="Asking you to join for 5 days course on Meditation"
-          description="Hi I am Priyesh Rathi Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing lectus faucibus enim libero enim, morbi nibh.Hi I am Priyesh Rathi Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing lectus faucibus enim libero enim, morbi nibh.Hi I am Priyesh Rathi Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing lectus faucibus enim libero enim, morbi nibh."
-          button1=""
-          button2="Pay ₹2500"
-        />
+        {myPayments.length > 0 ? <h5 className="mb2">Pending Payments</h5> : <div></div>}
+          {myPayments.map((request) => {
+            const { partner, friendship, forPlan, trainer } = request;
+            const discountedPrice = parseInt(forPlan.price - forPlan.price/20);
+            return (
+              <ReuseableCard
+                key={partner.userId}
+                className="mb3"
+                title={partner.name}
+                chipText="Maps"
+                chipBackground="primary"
+                image={partner.imageUrl}
+                heading1={`Asking you to join for ${forPlan.type} course on ${trainer.category} by ${trainer.name}`}
+                description={partner.bio}
+                button1={!friendship.paid.includes(partner.userId) ? `Ask Partner To Pay` : ''}
+                button2={!friendship.paid.includes(me.userId) ? `Pay $${discountedPrice}` : ''}
+                onButton2Click={() =>
+                  handlePayment(partner.userId, forPlan.planId, forPlan.type, discountedPrice)
+                }
+              />
+            );
+          })}
         <div className="h-divider secondary-special-background mt5 mb3"></div>
       </div>
 
       {/* //PREVIOUS PAYMENT ACTIVITIES  */}
-      {myPayments.length != 0 ? (
+      {myTrainers.length != 0 ? (
         <div className="mb4 ">
           <h5 className="mb4">Previous Payments</h5>
           {/* //LIST TILE */}
-          {myPayments.map((payment, i) => {
-            const { forPlan, trainer } = payment;
+          {myTrainers.map((payment, i) => {
+            const { forPlan, trainer, sub } = payment;
             return (
               <ListTile
                 key={i}
                 title={"To " + trainer.name}
                 type={forPlan.type + " Course"}
-                price={forPlan.price}
+                price={sub.price}
                 chipText={trainer.category}
                 chipBackground="secondary-light"
               />
