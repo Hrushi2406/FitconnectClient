@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ReactMapGL, { Marker } from "react-map-gl";
-// import ReactDirections from 'react-map-gl-directions'
+
 import { useMediaQuery } from 'react-responsive';
 import { gql, useQuery } from "@apollo/client";
 
@@ -8,92 +8,90 @@ import Sidebar from "../components/sidebar.jsx";
 
 import "../css/pages/home.css";
 
-const trainerQuery = gql`
-{
-  searchTrainer(
-    userLat: 19.0221
-    userLong: 72.8456
-    maxDistance: 3
-    maxPrice: 3000
-    category: "Zumba"
-    minRating: 0
-    gender: ""
-    age: -1
-    sortBy: "dist"
-    order: "asc"
-    keyword: ""
-  ){
-    trainerId
-    name
-    startPrice
-    age
-    fcRating
-    category
-    gender
-    lat
-    lon
-    images
-    mobile
-  }
+const searchQuery = gql`
+  query Search(
+    $userLat: Float
+    $userLon: Float
+  ) {
+    searchTrainer(
+      userLat: $userLat
+      userLong: $userLon
+      maxDistance: -1
+      maxPrice: -1
+      category: []
+      minRating: -1
+      gender: ""
+      age: -1
+      sortBy: ""
+      order: ""
+      keyword: ""
+    ){
+      trainerId
+      name
+      startPrice
+      age
+      fcRating
+      category
+      gender
+      lat
+      lon
+      images
+      mobile
+    }
 
-  me {
-    userId
-    lat
-    lon
-  }
+    me {
+      userId
+      lat
+      lon
+    }
 
-  filterUsers(
-    userLat: 19.0221
-    userLong: 72.8456
-    maxDistance: 3
-    category: []
-    gender: ""
-    age: 10
-    sortBy: ""
-    order: ""
-  ){
-    name
-    age
-    gender
-    lat
-    lon
-    imageUrl
-    email
-    mobile
+    filterUsers(
+      userLat: $userLat
+      userLong: $userLon
+      maxDistance: -1
+      category: []
+      gender: ""
+      age: -1
+      sortBy: ""
+      order: ""
+    ){
+      name
+      age
+      gender
+      lat
+      lon
+      imageUrl
+      email
+      mobile
+    }
   }
-}
 `;
 
 function HomePage() {
-  var userLat;
-  var userLon;
+  var userLat = 18.9999;
+  var userLon = 73.1220877106025;
   const isMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   const [className, setclassName] = useState("");
-  // const mapRef = React.createRef();
+  
+  const [viewPort, setViewPort] = useState({});
 
-  // navigator.geolocation.getCurrentPosition(function(position) {
-  //   userLat = parseFloat(position.coords.latitude);
-  //   userLon = parseFloat(position.coords.longitude);
-  //   setViewPort({
-  //     latitude:userLat, //19.0221
-  //     longitude:userLon, //72.8456
-  //     width:"100%",
-  //     height: isMobile ? "400px" : "590px",
-  //     zoom:10,
-  //   })
-  // });
-
-  const [viewPort, setViewPort] = useState({
-    latitude: 18.974199594762585,
-    longitude: 72.84271396813652,
-    width: "100%",
-    height: isMobile ? "400px" : "590px",
-    zoom: 12,
+  navigator.geolocation.getCurrentPosition(function(position) {
+    userLat = parseFloat(position.coords.latitude);
+    userLon = parseFloat(position.coords.longitude);
+    setViewPort({
+      latitude: 18.9984,
+      longitude: 73.12, 
+      width:"100%",
+      height: isMobile ? "400px" : "590px",
+      zoom:14,
+    })
   });
 
   const [selected, setSelected] = useState(null);
 
-  const { error, loading, data } = useQuery(trainerQuery);
+  const { error, loading, data } = useQuery(searchQuery,{
+    variables: { userLat, userLon },
+  });
 
   if (loading)
     return (
@@ -136,7 +134,7 @@ function HomePage() {
                   longitude: viewPort.longitude,
                   width: "100%",
                   height: isMobile ? "400px" : "590px",
-                  zoom: 12,
+                  zoom: viewPort.zoom,
                 });
               }}
             >
@@ -157,7 +155,7 @@ function HomePage() {
                         longitude: viewPort.longitude,
                         width: "100%",
                         height: isMobile ? "400px" : "590px",
-                        zoom: 12,
+                        zoom: viewPort.zoom,
                       });
                     }}
                   >
@@ -184,7 +182,7 @@ function HomePage() {
                           longitude: viewPort.longitude,
                           width: "100%",
                           height: isMobile ? "400px" : "590px",
-                          zoom: 12,
+                          zoom: viewPort.zoom,
                         });
                       }}
                     >
@@ -208,10 +206,6 @@ function HomePage() {
                 </button>
               </Marker>
               
-              {/* <ReactDirections 
-                mapRef={mapRef} 
-                mapboxApiAccessToken={"pk.eyJ1Ijoic3VtaXRtYWhhamFuIiwiYSI6ImNraDMzcHViMjBhdmgyeWxzZm1tc3FvNnEifQ.lX7eo_hgZuAWqUMwx3XZFg"} 
-              /> */}
             </ReactMapGL>
 
             {selected && (
