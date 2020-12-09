@@ -74,8 +74,18 @@ const DECLINE_REQUEST = gql`
 `;
 
 const PAY = gql`
-  mutation PayInPair($partnerId: String, $planId: String, $duration: String, $price: Int) {
-    payInPair(partnerId: $partnerId, planId: $planId, duration: $duration, price: $price)
+  mutation PayInPair(
+    $partnerId: String
+    $planId: String
+    $duration: String
+    $price: Int
+  ) {
+    payInPair(
+      partnerId: $partnerId
+      planId: $planId
+      duration: $duration
+      price: $price
+    )
   }
 `;
 
@@ -110,8 +120,15 @@ function PaymentsPage() {
 
   const handlePayment = async (partnerId, planId, duration, price) => {
     try {
-      await payInPair({ variables: { partnerId: partnerId, planId: planId, duration: duration, price: price } });
-      console.log('paid');
+      await payInPair({
+        variables: {
+          partnerId: partnerId,
+          planId: planId,
+          duration: duration,
+          price: price,
+        },
+      });
+      console.log("paid");
       window.location.reload();
     } catch (err) {
       console.log(err.message);
@@ -167,28 +184,45 @@ function PaymentsPage() {
 
       {/* PENDING PAYMENTS */}
       <div className="mb4">
-        {myPayments.length > 0 ? <h5 className="mb2">Pending Payments</h5> : <div></div>}
-          {myPayments.map((request) => {
-            const { partner, friendship, forPlan, trainer } = request;
-            const discountedPrice = parseInt(forPlan.price - forPlan.price/20);
-            return (
-              <ReuseableCard
-                key={partner.userId}
-                className="mb3"
-                title={partner.name}
-                chipText="Maps"
-                chipBackground="primary"
-                image={partner.imageUrl}
-                heading1={`Asking you to join for ${forPlan.type} course on ${trainer.category} by ${trainer.name}`}
-                description={partner.bio}
-                button1={!friendship.paid.includes(partner.userId) ? `Ask Partner To Pay` : ''}
-                button2={!friendship.paid.includes(me.userId) ? `Pay $${discountedPrice}` : ''}
-                onButton2Click={() =>
-                  handlePayment(partner.userId, forPlan.planId, forPlan.type, discountedPrice)
-                }
-              />
-            );
-          })}
+        {myPayments.length > 0 ? (
+          <h5 className="mb2">Pending Payments</h5>
+        ) : (
+          <div></div>
+        )}
+        {myPayments.map((request) => {
+          const { partner, friendship, forPlan, trainer } = request;
+          const discountedPrice = parseInt(forPlan.price - forPlan.price / 20);
+          return (
+            <ReuseableCard
+              key={partner.userId}
+              className="mb3"
+              title={partner.name}
+              chipText="Maps"
+              chipBackground="primary"
+              image={partner.imageUrl}
+              heading1={`Asking you to join for ${forPlan.type} course on ${trainer.category} by ${trainer.name}`}
+              description={partner.bio}
+              button1={
+                !friendship.paid.includes(partner.userId)
+                  ? `Ask Partner To Pay`
+                  : ""
+              }
+              button2={
+                !friendship.paid.includes(me.userId)
+                  ? `Pay $${discountedPrice}`
+                  : ""
+              }
+              onButton2Click={() =>
+                handlePayment(
+                  partner.userId,
+                  forPlan.planId,
+                  forPlan.type,
+                  discountedPrice
+                )
+              }
+            />
+          );
+        })}
         <div className="h-divider secondary-special-background mt5 mb3"></div>
       </div>
 

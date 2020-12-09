@@ -1,0 +1,20 @@
+.img-avatar {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 100px;
+  object-fit: cover;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .flex {
+    display: inline;
+  }
+  .dialog-box {
+    height: auto;
+  }
+}

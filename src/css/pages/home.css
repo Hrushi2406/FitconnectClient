@@ -5,6 +5,21 @@
   grid-column-gap: 5rem;
 }
 
+.img-overlay {
+  position: relative;
+  border-radius: 2rem;
+  height: 260px;
+  /* background: linear-gradient(#000000, #ffffff); */
+}
+
+.img-overlay-1 {
+  position: absolute;
+  border-radius: 2rem;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
+}
+
 .map-img {
   width: 100%;
   height: 100%;
@@ -14,7 +29,16 @@
 .person-img {
   width: 100%;
   height: 250px;
+  /* height: 100%; */
   border-radius: 2rem;
+  object-fit: cover;
+}
+
+.overlay-name {
+  position: absolute;
+  color: white;
+  left: 2rem;
+  bottom: 2rem;
 }
 
 .marker-btn {

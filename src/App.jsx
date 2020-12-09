@@ -11,6 +11,7 @@ import client from "./config/client";
 import MyTrainers from "./pages/my_trainers";
 import PaymentsPage from "./pages/payments_page";
 import ProtectedRoute from "./components/auth/protected_route";
+import PairingRequests from "./pages/pairing_requests";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route exact path="/profile" component={UserProfile} />
             <Route exact path="/yourTrainers" component={MyTrainers} />
             <Route exact path="/payments" component={PaymentsPage} />
+            <Route exact path="/pairingRequests" component={PairingRequests} />
           </ProtectedRoute>
           {/* <Route exact path="/" */}
 

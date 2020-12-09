@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "../css/pages/trainer_profile.css";
 import Chip from "../components/chip.jsx";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
+import Dialog from "../components/dialog";
 
 const QUERY = gql`
   query Trainer($trainerId: String!) {
@@ -27,16 +28,39 @@ const QUERY = gql`
   }
 `;
 
+const subscribe = gql`
+  mutation Subscribe($price: Int, $type: Int, $planId: String) {
+    subscribe(price: $price, duration: $type, planId: $planId)
+  }
+`;
+
 function TrainerProfile() {
   const trainerId = useParams().id;
   const { loading, error, data } = useQuery(QUERY, {
     variables: { trainerId },
   });
+  const [openDialog, setopenDialog] = useState(false);
+  const [selectedPlan, setselectedPlan] = useState(null);
+
+  const [subscribePlan, sub] = useMutation(subscribe);
 
   if (loading) return <div className="center">Loading...</div>;
   if (error) return <div className="center">{error}</div>;
 
   const { trainer } = data;
+
+  const handleSendRequest = () => {
+    console.log(selectedPlan);
+    subscribePlan({
+      variables: {
+        price: selectedPlan.price,
+        type: 6,
+        planId: selectedPlan.planId,
+      },
+    });
+
+    setopenDialog(false);
+  };
 
   return (
     <React.Fragment>
@@ -107,6 +131,45 @@ function TrainerProfile() {
             <Chip text="Workout" background="secondary-light" />
           </div>
 
+          {/* Dialog */}
+          <Dialog open={openDialog} onClose={() => setopenDialog(false)}>
+            <div
+              className="clickable"
+              onClick={() => setopenDialog(false)}
+            ></div>
+            {trainer === null ? (
+              ""
+            ) : (
+              <div className="dialog-box pt3 pb3 pl3 pr3">
+                <h4 className=" mr1">Subscribe</h4>
+
+                {selectedPlan === null ? (
+                  ""
+                ) : (
+                  <h6 className="mt2 mb2">
+                    To Trainer {trainer.name} for a {selectedPlan.type} course
+                    of price ₹{selectedPlan.price}
+                  </h6>
+                )}
+
+                <div className="spaced-between fullWidth mt3">
+                  <button
+                    className="fullWidth secondary-btn"
+                    onClick={() => setopenDialog(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="fullWidth"
+                    onClick={() => handleSendRequest()}
+                  >
+                    Pay & Subscribe
+                  </button>
+                </div>
+              </div>
+            )}
+          </Dialog>
+
           {/* LIST OF Course */}
           {trainer.plans.map((plan) => (
             <ListTile
@@ -114,7 +177,10 @@ function TrainerProfile() {
               title={plan.title}
               type={plan.type}
               price={plan.price}
-              onSelect={() => {}}
+              onSelect={() => {
+                setselectedPlan(plan);
+                setopenDialog(true);
+              }}
             />
           ))}
         </div>

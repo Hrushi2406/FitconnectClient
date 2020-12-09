@@ -66,7 +66,7 @@ function TrainerDialog({ openDialog, close, filterInfo, filter }) {
               header="Max Distance "
               subHeader="(in KM)"
               min={0}
-              max={10}
+              max={100}
               value={maxDistance}
               onChange={(e) => setmaxDistance(e.target.value)}
             />
