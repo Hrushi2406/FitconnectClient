@@ -247,8 +247,8 @@ export default class SearchPage extends Component {
     await client.query({
       query: FILTER_QUERY,
       variables: {
-        userLat: 19.0222,
-        userLong: 72.8561,
+        userLat: 18.9984,
+        userLong: 73.12,
         maxDistance: this.state.filterInfo.maxDistance,
         maxPrice: this.state.filterInfo.maxStartPrice,
         category: this.state.filterInfo.interests,
@@ -295,8 +295,8 @@ export default class SearchPage extends Component {
     const data = await client.query({
       query: FILTER_QUERY,
       variables: {
-        userLat: 19.0222,
-        userLong: 72.8561,
+        userLat: 18.9984,
+        userLong: 73.12,
         maxDistance: parseInt(filters.maxDistance),
         maxPrice: parseInt(filters.maxStartPrice) * 100,
         category: filters.interests,
@@ -337,8 +337,8 @@ export default class SearchPage extends Component {
     var fData = await client.query({
       query: FILTER_QUERY,
       variables: {
-        userLat: 19.0222,
-        userLong: 72.8561,
+        userLat: 18.9984,
+        userLong: 73.12,
         maxDistance: 1000,
         maxPrice: -1,
         category: ["Yoga", "Workout"],
@@ -420,7 +420,7 @@ export default class SearchPage extends Component {
           <div className="grid ">
             {isRecommended ? (
               recommendations === undefined ? (
-                <div> Loaidng</div>
+                <div> Loadng</div>
               ) : (
                 recommendations.map((trainer) => (
                   <Card
@@ -435,7 +435,7 @@ export default class SearchPage extends Component {
                 ))
               )
             ) : trainers == undefined ? (
-              <div> Loaidng</div>
+              <div> Loadng</div>
             ) : (
               trainers.map((trainer) => (
                 <Card

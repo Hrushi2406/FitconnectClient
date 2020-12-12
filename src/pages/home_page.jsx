@@ -1,16 +1,21 @@
-import React, { useState } from "react";
-import ReactMapGL, { Marker } from "react-map-gl";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions'
+import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css'
 
-import { useMediaQuery } from "react-responsive";
-import { gql, useQuery } from "@apollo/client";
-
+import React from "react";
+import client from "../config/client";
+import { gql } from "@apollo/client";
 import Sidebar from "../components/sidebar.jsx";
-
 import "../css/pages/home.css";
-import { useHistory } from "react-router-dom";
+
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY;
 
 const searchQuery = gql`
-  query Search($userLat: Float, $userLon: Float) {
+  query Search(
+    $userLat: Float, 
+    $userLon: Float
+  ) {
     searchTrainer(
       userLat: $userLat
       userLong: $userLon
@@ -72,41 +77,114 @@ const searchQuery = gql`
   }
 `;
 
-function HomePage() {
-  var userLat = 18.9999;
-  var userLon = 73.1220877106025;
-  const isMobile = useMediaQuery({ query: "(max-width: 1224px)" });
-  const [className, setclassName] = useState("");
-  const history = useHistory();
+class HomePage extends React.Component {
+  state = {
+    className: "",
+    selected: null,
+    userLat: 18.9984,
+    userLon: 73.12,
+  };
 
-  const [viewPort, setViewPort] = useState({});
+  componentDidMount = async () => {
+    // Actual current location of user
+    await navigator.geolocation.getCurrentPosition(
+      position => this.setState({ 
+        userLat: position.coords.latitude, 
+        userLon: position.coords.longitude,
+      }), 
+      err => console.log(err)
+    );
 
-  navigator.geolocation.getCurrentPosition(function (position) {
-    userLat = parseFloat(position.coords.latitude);
-    userLon = parseFloat(position.coords.longitude);
-    setViewPort({
-      latitude: 18.9984,
-      longitude: 73.12,
-      width: "100%",
-      height: isMobile ? "400px" : "590px",
-      zoom: 14,
+    var data = await client.query({
+      query: searchQuery,
+      variables: {
+        userLat: this.state.userLat,
+        userLong: this.state.userLon,
+        maxDistance: -1,
+        maxPrice: -1,
+        category: [],
+        minRating: -1,
+        gender: "",
+        age: -1,
+        sortBy: "",
+        order: "",
+        keyword: "",
+      },
     });
-  });
 
-  const [selected, setSelected] = useState(null);
+    const { searchTrainer, me, filterUsers } = data.data;
 
-  const { error, loading, data } = useQuery(searchQuery, {
-    variables: { userLat, userLon },
-  });
+    // Creates new map instance
+    const map = new mapboxgl.Map({
+      container: this.mapWrapper,
+      style: 'mapbox://styles/mapbox/streets-v10',
+      // 'mapbox://styles/sumitmahajan/ckh34w2wl2bq419qt74byo3bo',
+      // 'mapbox://styles/sumitmahajan/ckikhmng20yeo17p96iy18cvd',
+      center: [this.state.userLon, this.state.userLat],
+      zoom: 14
+    });
 
-  if (loading) return <div className="center">Loading</div>;
+    //Modify default onClick event on entire map except markers
+    map.on('click', (e) => {
+      e.preventDefault();
+      this.setState({ ...this.state, selected: null, className: "" });
+    })
 
-  if (error) return <div className="center">{error.message}</div>;
+    // Creates new directions control instance
+    const directions = new MapboxDirections({
+      accessToken: mapboxgl.accessToken,
+      unit: 'metric',
+      profile: 'mapbox/walking',
+      controls: {instructions: true} // For phone screen it should be false
+    });
 
-  if (data) {
-    const { searchTrainer, filterUsers, me } = data;
+    // Fixed starting point
+    directions.setOrigin([this.state.userLon, this.state.userLat]);
 
-    console.log(selected);
+    // Integrates directions control with map
+    map.addControl(directions, 'top-left');
+
+    // Create trainer markers
+    searchTrainer.map((trainer) => {
+      var marker = new mapboxgl.Marker({
+        color: 'red'
+      }).setLngLat([trainer.lon, trainer.lat])
+        .addTo(map);
+      marker.getElement().style.cursor = "pointer";
+      marker.getElement().addEventListener('click', (e) => {
+        this.setState({ ...this.state, selected: { sel: trainer, type: "t" }, className: "map-grid" });
+        directions.setDestination([trainer.lon, trainer.lat]);
+        e.stopPropagation();
+      });
+    });
+
+    // Create user markers
+    filterUsers.map((user) => {
+      var marker = new mapboxgl.Marker()
+        .setLngLat([user.lon, user.lat])
+        .addTo(map);
+      marker.getElement().style.cursor = "pointer";
+      marker.getElement().addEventListener('click', (e) => {
+        this.setState({ ...this.state, selected: { sel: user, type: "u" }, className: "map-grid" });
+        directions.setDestination([user.lon, user.lat]);
+        e.stopPropagation();
+      });
+    });
+
+    //Current user's permanent location marker
+    new mapboxgl.Marker({
+      color: 'green'
+    }).setLngLat([me.lon, me.lat])
+      .addTo(map);
+
+    //Current user's current location marker
+    new mapboxgl.Marker({
+      color: 'yellow'
+    }).setLngLat([this.state.userLon, this.state.userLat])
+      .addTo(map);
+  }
+
+  render() {
     return (
       <React.Fragment>
         <div className="padded-container">
@@ -114,144 +192,37 @@ function HomePage() {
             <h5>People Nearby</h5>
             <h6 className="primary">Filter & Sort</h6>
           </div>
-          <div className={className}>
-            <ReactMapGL
-              {...viewPort}
-              mapStyle="mapbox://styles/sumitmahajan/ckh34ks3r2bey19p9tmoce0rd"
-              mapboxApiAccessToken={
-                "pk.eyJ1Ijoic3VtaXRtYWhhamFuIiwiYSI6ImNraDMzcHViMjBhdmgyeWxzZm1tc3FvNnEifQ.lX7eo_hgZuAWqUMwx3XZFg"
-              }
-              onViewportChange={(viewport) => setViewPort(viewport)}
-              className="map-img"
-              onClick={() => {
-                setSelected(null);
-                setclassName("");
-                setViewPort({
-                  latitude: viewPort.latitude,
-                  longitude: viewPort.longitude,
-                  width: "100%",
-                  height: isMobile ? "400px" : "590px",
-                  zoom: viewPort.zoom,
-                });
-              }}
-            >
-              {/* Plot filtered trainers */}
-              {searchTrainer.map((trainer) => (
-                <Marker
-                  key={trainer.trainerId}
-                  latitude={trainer.lat}
-                  longitude={trainer.lon}
-                >
-                  <button
-                    className="marker-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelected({ sel: trainer, type: "t" });
-                      setclassName("map-grid");
-                      setViewPort({
-                        latitude: viewPort.latitude,
-                        longitude: viewPort.longitude,
-                        width: "100%",
-                        height: isMobile ? "400px" : "590px",
-                        zoom: viewPort.zoom,
-                      });
-                    }}
-                  >
-                    <img
-                      src="/images/trainer.svg"
-                      alt="image"
-                      className="marker-img"
-                    />
-                  </button>
-                </Marker>
-              ))}
-
-              {/* Plot filtered Users */}
-              {filterUsers.map((user) =>
-                user.userId != me.userId ? (
-                  <Marker
-                    key={user.userId}
-                    latitude={user.lat}
-                    longitude={user.lon}
-                  >
-                    <button
-                      className="marker-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelected({ sel: user, type: "u" });
-                        setclassName("map-grid");
-                        setViewPort({
-                          latitude: viewPort.latitude,
-                          longitude: viewPort.longitude,
-                          width: "100%",
-                          height: isMobile ? "400px" : "590px",
-                          zoom: viewPort.zoom,
-                        });
-                      }}
-                    >
-                      <img
-                        src="/images/user1.svg"
-                        alt="image"
-                        className="marker-img"
-                      />
-                    </button>
-                  </Marker>
-                ) : (
-                  <div></div>
-                )
-              )}
-
-              {/* Plots current User */}
-              <Marker key={me.userId} latitude={me.lat} longitude={me.lon}>
-                <button className="marker-btn">
-                  <img
-                    src="/images/trainer1.svg"
-                    alt="image"
-                    className="marker-img"
-                  />
-                  <br />
-                  You
-                </button>
-              </Marker>
-            </ReactMapGL>
-
-            {selected &&
-              (selected.type == "u" ? (
+          <div className={this.state.className}>
+            {/* Map Element */}
+            <div ref={el => (this.mapWrapper = el)} className="map-img"/>
+            {/* SideBar */}
+            {this.state.selected &&
+              (this.state.selected.type == "u" ? (
                 <Sidebar
-                  name={selected.sel.name}
+                  name={this.state.selected.sel.name}
                   fcRating=""
-                  imageUrl={selected.sel.imageUrl}
+                  imageUrl={this.state.selected.sel.imageUrl}
                   profession="User"
                   distance="10 km"
-                  gender={selected.sel.gender}
-                  age={selected.sel.age}
-                  mobile={selected.sel.mobile}
+                  gender={this.state.selected.sel.gender}
+                  age={this.state.selected.sel.age}
+                  mobile={this.state.selected.sel.mobile}
                   button="Pair"
-                  onButtonClick={() =>
-                    history.push({
-                      pathname: "pairingRequests",
-                      data: { trainers: searchTrainer, user: selected.sel },
-                    })
-                  }
                 />
               ) : (
-                <Sidebar
-                  name={selected.sel.name}
-                  fcRating={selected.sel.fcRating}
-                  imageUrl={selected.sel.images[0]}
-                  profession="Trainer"
-                  distance="10 km"
-                  gender={selected.sel.gender}
-                  age={selected.sel.age}
-                  mobile={selected.sel.mobile}
-                  button="Visit Profile"
-                  onButtonClick={() =>
-                    window.location.replace(
-                      `/trainer/${selected.sel.trainerId}`
-                    )
-                  }
-                />
-              ))}
+                  <Sidebar
+                    name={this.state.selected.sel.name}
+                    fcRating={this.state.selected.sel.fcRating}
+                    imageUrl={this.state.selected.sel.images[0]}
+                    profession="Trainer"
+                    distance="10 km"
+                    gender={this.state.selected.sel.gender}
+                    age={this.state.selected.sel.age}
+                    mobile={this.state.selected.sel.mobile}
+                    button="Visit Profile"
+                    onButtonClick={()=>window.location.replace(`/trainer/${this.state.selected.sel.trainerId}`)}
+                  />
+                ))}
           </div>
         </div>
       </React.Fragment>

@@ -6,7 +6,7 @@ import Slider from "../slider";
 import "../../css/components/trainer_dialog.css";
 
 function TrainerDialog({ openDialog, close, filterInfo, filter }) {
-  const [maxDistance, setmaxDistance] = useState(100);
+  const [maxDistance, setmaxDistance] = useState(10);
   const [minRating, setminRating] = useState(0);
   const [maxStartPrice, setmaxStartPrice] = useState(100);
   const [maxAge, setmaxAge] = useState(60);
@@ -66,7 +66,7 @@ function TrainerDialog({ openDialog, close, filterInfo, filter }) {
               header="Max Distance "
               subHeader="(in KM)"
               min={0}
-              max={100}
+              max={10}
               value={maxDistance}
               onChange={(e) => setmaxDistance(e.target.value)}
             />

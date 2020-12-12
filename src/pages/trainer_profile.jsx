@@ -29,7 +29,7 @@ const QUERY = gql`
 `;
 
 const subscribe = gql`
-  mutation Subscribe($price: Int, $type: Int, $planId: String) {
+  mutation Subscribe($price: Int, $type: String, $planId: String) {
     subscribe(price: $price, duration: $type, planId: $planId)
   }
 `;
@@ -49,12 +49,12 @@ function TrainerProfile() {
 
   const { trainer } = data;
 
-  const handleSendRequest = () => {
+  const handleSubscription = () => {
     console.log(selectedPlan);
     subscribePlan({
       variables: {
         price: selectedPlan.price,
-        type: 6,
+        type: selectedPlan.type,
         planId: selectedPlan.planId,
       },
     });
@@ -91,7 +91,7 @@ function TrainerProfile() {
 
             <p className="mt2 description">{trainer.bio}</p>
 
-            {/* PERSONAL INGO */}
+            {/* PERSONAL INFO */}
             <div className="container mt4 pl4 pr4 pt3 pb3 secondary-background ">
               <div className="spaced-between mb3">
                 <h6>Gender</h6>
@@ -119,8 +119,8 @@ function TrainerProfile() {
               </div>
             </div>
 
-            {/* BUTTOn */}
-            <button className="mt3 fullWidth">Get directions in map</button>
+            {/* BUTTON */}
+            <button className="mt3 fullWidth" onClick={()=>window.location.replace('/')}>Get directions in map</button>
           </div>
         </div>
         {/* COURSES */}
@@ -161,7 +161,7 @@ function TrainerProfile() {
                   </button>
                   <button
                     className="fullWidth"
-                    onClick={() => handleSendRequest()}
+                    onClick={() => handleSubscription()}
                   >
                     Pay & Subscribe
                   </button>

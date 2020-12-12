@@ -1,5 +1,6 @@
-import { gql, useQuery } from "@apollo/client";
-import React from "react";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import { isSelectionNode } from "graphql";
+import React, { useState } from "react";
 import Note from "../components/note";
 import ReuseableCard from "../components/reuseable_card";
 
@@ -7,6 +8,7 @@ const MY_TRAINERS = gql`
   query {
     myTrainers {
       trainer {
+        trainerId
         name
         bio
         images
@@ -17,11 +19,21 @@ const MY_TRAINERS = gql`
         type
       }
     }
+    myReportedTrainers
+  }
+`;
+
+const REPORT = gql`
+  mutation Report($trainerId: String){
+    reportTrainer(
+      trainerId: $trainerId
+    )
   }
 `;
 
 function MyTrainers() {
   const { data, error, loading } = useQuery(MY_TRAINERS);
+  const [ report ] = useMutation(REPORT);
 
   if (loading) return <div className="center">Loading...</div>;
   if (error)
@@ -30,7 +42,12 @@ function MyTrainers() {
         <h6>{error.message}</h6>
       </div>
     );
-  const { myTrainers } = data;
+  const { myTrainers, myReportedTrainers } = data;
+  
+  function handleReport(trainer){
+    report({variables:{trainerId: trainer.trainerId}});
+    window.location.reload();
+  }
 
   return (
     <div className="padded-container">
@@ -53,8 +70,14 @@ function MyTrainers() {
             }
             heading1={`You hired him for ${forPlan.type} course on ${trainer.category}`}
             description={trainer.bio}
-            button1="Report"
+            button1={myReportedTrainers.includes(trainer.trainerId) ? "" : "Report"}
+            onButton1Click={()=>{
+              handleReport(trainer);
+            }}
             button2="Rehire "
+            onButton2Click={()=>{
+              window.location.replace(`/trainer/${trainer.trainerId}`)
+            }}
           />
         );
       })}
