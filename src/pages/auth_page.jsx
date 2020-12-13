@@ -1,5 +1,6 @@
 import { useMutation } from "@apollo/client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Interests from "../components/auth/interest";
 import Login, { LOGIN_QUERY } from "../components/auth/login";
 import Signup from "../components/auth/signup";
@@ -7,6 +8,15 @@ import "../css/pages/auth.css";
 
 function AuthPage() {
   const [currentIndex, setcurrentIndex] = useState(0);
+  const { state } = useLocation();
+
+  useEffect(() => {
+    if (state !== undefined) {
+      if (state.data.showInterest) {
+        setcurrentIndex(2);
+      }
+    }
+  }, [state]);
 
   const pages = [
     <Login onChange={() => setcurrentIndex(1)} />,

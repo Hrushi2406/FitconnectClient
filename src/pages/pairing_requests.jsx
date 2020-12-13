@@ -18,8 +18,11 @@ const query = gql`
 function PairingRequests() {
   const history = useHistory();
   const [sendRequest, { error, loading, data }] = useMutation(query);
+
   const {
-    data: { trainers, user },
+    state: {
+      data: { trainers, user },
+    },
   } = useLocation();
   const [selectedOption, setselectedOption] = useState({
     trainer: null,

@@ -4,6 +4,7 @@ import { setToken } from "../../utils/authorization";
 
 import Chipbox from "../chipbox";
 import Input from "../input";
+import { useHistory } from "react-router-dom";
 
 function Signup(props) {
   const [email, setemail] = useState("");
@@ -14,6 +15,8 @@ function Signup(props) {
   const [gender, setgender] = useState("");
   var userLat = 0;
   var userLon = 0;
+
+  const history = useHistory();
 
   const [className, setclassName] = useState("");
   const [signup, { data, error, loading }] = useMutation(SIGNUP_QUERY);
@@ -39,12 +42,11 @@ function Signup(props) {
         },
       });
       setToken(d.data.registerAsUser);
+      history.push("/auth", { data: { showInterest: true } });
 
-      window.location.reload();
       props.onSignUpSuccess();
-    } catch (err) { }
+    } catch (err) {}
   };
-
 
   return (
     <div className={"add " + className}>
@@ -103,13 +105,15 @@ function Signup(props) {
       {loading ? (
         <button className="fullWidth">Loading</button>
       ) : (
-          <button className="fullWidth" onClick={(e) => {
+        <button
+          className="fullWidth"
+          onClick={(e) => {
             handleClick(e);
-          }}>
-            Sign up
-          </button>
-        )
-      }
+          }}
+        >
+          Sign up
+        </button>
+      )}
 
       {error ? (
         <React.Fragment>
@@ -118,11 +122,10 @@ function Signup(props) {
           <div className="spacing-1"></div>
         </React.Fragment>
       ) : (
-          <React.Fragment>
-            <div className="spacing-2"></div>
-          </React.Fragment>
-        )
-      }
+        <React.Fragment>
+          <div className="spacing-2"></div>
+        </React.Fragment>
+      )}
 
       <div className="spacing-2"></div>
       <p
@@ -150,20 +153,20 @@ const SIGNUP_QUERY = gql`
     $address: String
     $lat: Float
     $lon: Float
-  ){
+  ) {
     registerAsUser(
-        name: $name
-        email: $email
-        password: $password
-        gender: $gender
-        age: $age
-        mobile: "3076589245"
-        bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
-        address: $address
-        imageUrl: "https://images.unsplash.com/photo-1506197061617-7f5c0b093236?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1005&q=80"
-        lat: $lat
-        lon: $lon
-      )
+      name: $name
+      email: $email
+      password: $password
+      gender: $gender
+      age: $age
+      mobile: "3076589245"
+      bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+      address: $address
+      imageUrl: "https://images.unsplash.com/photo-1506197061617-7f5c0b093236?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1005&q=80"
+      lat: $lat
+      lon: $lon
+    )
   }
 `;
 

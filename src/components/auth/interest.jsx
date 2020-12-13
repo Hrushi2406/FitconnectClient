@@ -13,12 +13,28 @@ function Interests(props) {
   const handleClick = async (e) => {
     e.preventDefault();
     try {
-      await addInterests({
-        variables: { interests: interests },
-      });
+      // await addInterests({
+      //   variables: { interests: interests },
+      // });
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          Authorization: getToken(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+          mutation { 
+              addInterests(interests: ${JSON.stringify(interests)}) 
+            }`,
+        }),
+      };
+      await fetch("http://localhost:4000/", requestOptions);
 
       window.location.replace("/");
-    } catch (err) {}
+    } catch (err) {
+      console.log(err);
+    }
   };
   const addToList = (interest) => {
     if (!interests.includes(interest)) {
@@ -66,11 +82,10 @@ function Interests(props) {
       {loading ? (
         <button className="fullWidth">Loading</button>
       ) : (
-          <button className="fullWidth" onClick={handleClick}>
-            NEXT
-          </button>
-        )
-      }
+        <button className="fullWidth" onClick={handleClick}>
+          NEXT
+        </button>
+      )}
 
       {error ? (
         <React.Fragment>
@@ -79,11 +94,10 @@ function Interests(props) {
           <div className="spacing-1"></div>
         </React.Fragment>
       ) : (
-          <React.Fragment>
-            <div className="spacing-2"></div>
-          </React.Fragment>
-        )
-      }
+        <React.Fragment>
+          <div className="spacing-2"></div>
+        </React.Fragment>
+      )}
 
       <div className="spacing-2"></div>
     </div>

@@ -230,7 +230,7 @@ export default class SearchPage extends Component {
     isRecommended: true,
     search: "",
     filterInfo: {
-      maxDistance: -1,
+      maxDistance: 10,
       minRating: -1,
       maxStartPrice: -1,
       maxAge: -1,

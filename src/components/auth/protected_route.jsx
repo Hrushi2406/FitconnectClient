@@ -8,7 +8,7 @@ function ProtectedRoute({ children }) {
 
   if (token) return <div>{children}</div>;
   else {
-    history.push("/auth");
+    history.push("/auth", { data: { showInterest: false } });
     return <div></div>;
   }
 }
