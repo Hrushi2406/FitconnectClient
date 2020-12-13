@@ -6,8 +6,8 @@ function Chipbox(props) {
       style={props.style}
       className={
         props.isSelected
-          ? "spaced-between chipbox pl2 pr2 pt1 pb1"
-          : "chipbox pl5 pr5 pt1 pb1"
+          ? "spaced-between chipbox pl2 pr2 pt1 pb1 " + props.className
+          : "chipbox pl5 pr5 pt1 pb1 " + props.className
       }
       onClick={props.onClick}
     >

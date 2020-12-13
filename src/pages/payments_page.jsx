@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import ListTile from "../components/list_tile";
 import Note from "../components/note";
 import ReuseableCard from "../components/reuseable_card";
+import GeneralDialog from "../components/dialog/general_dialog";
 
 const QUERY = gql`
   query {
@@ -95,6 +96,8 @@ function PaymentsPage() {
   const [declineRequest] = useMutation(DECLINE_REQUEST);
   const [payInPair] = useMutation(PAY);
   const [dummy, setdummy] = useState("");
+  const [openDialog, setopenDialog] = useState(false);
+  const [selectedInfo, setselectedInfo] = useState(null);
 
   useEffect(async () => {
     a();
@@ -122,10 +125,10 @@ function PaymentsPage() {
     try {
       await payInPair({
         variables: {
-          partnerId: partnerId,
-          planId: planId,
-          duration: duration,
-          price: price,
+          partnerId: selectedInfo.partnerId,
+          planId: selectedInfo.planId,
+          duration: selectedInfo.type,
+          price: selectedInfo.discountedPrice,
         },
       });
       console.log("paid");
@@ -143,6 +146,18 @@ function PaymentsPage() {
 
   return (
     <div className="padded-container">
+      <GeneralDialog
+        openDialog={openDialog}
+        close={() => setopenDialog(false)}
+        title={`Pay ₹${
+          selectedInfo === null ? " " : selectedInfo.discountedPrice
+        }`}
+        subtitle="Your plan will not start until your partner has also made the payment"
+        button1="Cancel"
+        button2="Pay"
+        onButton1Click={() => setopenDialog(false)}
+        onButton2Click={handlePayment}
+      />
       {/* //NOTE */}
       <Note
         note=" Note* - The plan will only start once both the users have made the
@@ -209,17 +224,18 @@ function PaymentsPage() {
               }
               button2={
                 !friendship.paid.includes(me.userId)
-                  ? `Pay $${discountedPrice}`
+                  ? `Pay ₹${discountedPrice}`
                   : ""
               }
-              onButton2Click={() =>
-                handlePayment(
-                  partner.userId,
-                  forPlan.planId,
-                  forPlan.type,
-                  discountedPrice
-                )
-              }
+              onButton2Click={() => {
+                setopenDialog(true);
+                setselectedInfo({
+                  partnerId: partner.userId,
+                  planId: forPlan.planId,
+                  type: forPlan.type,
+                  discountedPrice: discountedPrice,
+                });
+              }}
             />
           );
         })}

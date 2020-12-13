@@ -5,7 +5,7 @@ function Dialog(props) {
 
   return (
     <div onClick={props.close}>
-      <div className="overlay">{props.children}</div>
+      <div className={"overlay " + props.className}>{props.children}</div>
     </div>
   );
 }

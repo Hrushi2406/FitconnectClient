@@ -67,7 +67,7 @@ function Navbar() {
           onClick={handleClick}
           className={currentActive === "/yourTrainers" ? "primary" : " "}
         >
-          <p>Your Trainers</p>
+          <p>Your Plans</p>
         </Link>
 
         <div className="divider"></div>

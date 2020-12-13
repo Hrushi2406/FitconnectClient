@@ -19,7 +19,7 @@ function Sidebar({
       {/* <div className="img-overlay"> */}
       {/* <div className="img-overlay-1"></div> */}
       <div className="spaced-between">
-        <h5>{name}</h5>
+        <h3>{name}</h3>
         {fcRating != "" ? <Chip text={fcRating} /> : <div />}
       </div>
       <img

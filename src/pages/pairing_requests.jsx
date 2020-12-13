@@ -83,13 +83,14 @@ function PairingRequests() {
 
         {trainers.map((t) => {
           return (
-            <React.Fragment>
+            <React.Fragment key={t.trainerId}>
               <div className="spaced-between mb4">
                 <h3>{t.name}</h3>
                 <Chip text={t.category} background="primary-light" />
               </div>
               {t.plans.map((p) => (
                 <ListTile
+                  key={p.planId}
                   title={p.title}
                   type={p.type}
                   price={p.price}

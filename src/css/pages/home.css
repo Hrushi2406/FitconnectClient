@@ -53,6 +53,69 @@
   height: 30px;
 }
 
+.filter-grid {
+  display: grid;
+  grid-template-areas: "instructions  slider slider filter";
+  /* grid-template-columns: 1fr 2fr 1fr; */
+  /* grid-column-gap: 2rem; */
+  align-items: center;
+  justify-items: center;
+}
+
+.instructions {
+  width: 80%;
+  grid-area: instructions;
+  justify-self: start;
+}
+
+.distance-slider {
+  width: 100%;
+  grid-area: slider;
+}
+
+.filter-options {
+  width: 80%;
+  grid-area: filter;
+  justify-self: flex-end;
+}
+
+.z-indexed {
+  z-index: 1000;
+}
+
+.trainer-marker {
+  width: 35px;
+  height: 35px;
+  background-size: cover;
+  color: red;
+  fill: orange;
+  /* filter: invert(28%); */
+
+  border-radius: 100px;
+  animation: popOut 0.5s forwards ease;
+}
+
+.user-marker {
+  width: 15px;
+  height: 15px;
+  background-size: cover;
+  color: red;
+  fill: orange;
+  /* filter: invert(28%); */
+
+  border-radius: 100px;
+  animation: popOut 0.5s forwards ease;
+}
+
+@keyframes popOut {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 960px) {
   .map-grid {
     grid-template-columns: repeat(1, 1fr);
@@ -61,5 +124,19 @@
 
   .map-img {
     height: 500px;
+  }
+
+  .filter-grid {
+    grid-template-areas: "instructions  filter" "slider slider";
+    grid-row-gap: 2rem;
+    grid-column-gap: 3rem;
+  }
+
+  .instructions {
+    width: 120%;
+  }
+
+  .filter-options {
+    width: 80%;
   }
 }

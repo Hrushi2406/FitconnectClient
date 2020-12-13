@@ -1,8 +1,8 @@
 import React from "react";
 
-function Slider({ min, max, value, onChange }) {
+function Slider({ min, max, className, value, onChange }) {
   return (
-    <div className="slider">
+    <div className={"slider " + className}>
       <h6 className="pr1"> {min}</h6>
       <div> </div>
       <input

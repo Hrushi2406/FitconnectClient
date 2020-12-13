@@ -8,6 +8,10 @@ import client from "../config/client";
 import { gql } from "@apollo/client";
 import Sidebar from "../components/sidebar.jsx";
 import "../css/pages/home.css";
+import SliderWithTitle from "../components/slider";
+import Chipbox from "../components/chipbox";
+import Dialog from "../components/dialog";
+import HomeDialog from "../components/dialog/home_dialog";
 
 // mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY;
 mapboxgl.accessToken =
@@ -15,16 +19,28 @@ mapboxgl.accessToken =
 // ("pk.eyJ1Ijoic3VtaXRtYWhhamFuIiwiYSI6ImNraDMzcHViMjBhdmgyeWxzZm1tc3FvNnEifQ.lX7eo_hgZ");
 
 const searchQuery = gql`
-  query Search($userLat: Float, $userLon: Float) {
+  query Search(
+    $userLat: Float
+    $userLon: Float
+    $maxDistance: Int
+    $maxPrice: Int
+    $minRating: Int
+    $tCategory: [String]
+    $tGender: String
+    $tAge: Int
+    $uCategory: [String]
+    $uGender: String
+    $uAge: Int
+  ) {
     searchTrainer(
       userLat: $userLat
       userLong: $userLon
-      maxDistance: -1
-      maxPrice: -1
-      category: []
-      minRating: -1
-      gender: ""
-      age: -1
+      maxDistance: $maxDistance
+      maxPrice: $maxPrice
+      category: $tCategory
+      minRating: $minRating
+      gender: $tGender
+      age: $tAge
       sortBy: ""
       order: ""
       keyword: ""
@@ -57,10 +73,10 @@ const searchQuery = gql`
     filterUsers(
       userLat: $userLat
       userLong: $userLon
-      maxDistance: -1
-      category: []
-      gender: ""
-      age: -1
+      maxDistance: $maxDistance
+      category: $uCategory
+      gender: $uGender
+      age: $uAge
       sortBy: ""
       order: ""
     ) {
@@ -81,51 +97,62 @@ class HomePage extends React.Component {
   state = {
     className: "",
     selected: null,
+    showInstructions: true,
     userLat: 18.9984,
     userLon: 73.12,
+    // userLat: 19.0222,
+    // userLon: 72.85,
     trainers: [],
+    maxDistance: -1,
+    filters: {
+      maxPrice: -1,
+      minRating: 0,
+      tCategory: [],
+      tGender: "",
+      tAge: -1,
+      uCategory: [],
+      uGender: "",
+      uAge: -1,
+    },
+    trainerMarkers: [],
+    userMarkers: [],
+    map: null,
+    directions: null,
+
+    openDialog: false,
   };
 
   componentDidMount = async () => {
-    // Actual current location of user
-    // await navigator.geolocation.getCurrentPosition(
-    //   (position) =>
-    //     this.setState({
-    //       userLat: position.coords.latitude,
-    //       userLon: position.coords.longitude,
-    //     }),
-    //   (err) => console.log(err)
-    // );
-
+    const { filters } = this.state;
     var data = await client.query({
       query: searchQuery,
       variables: {
         userLat: this.state.userLat,
-        userLong: this.state.userLon,
-        maxDistance: -1,
-        maxPrice: -1,
-        category: [],
-        minRating: -1,
-        gender: "",
-        age: -1,
-        sortBy: "",
-        order: "",
-        keyword: "",
+        userLon: this.state.userLon,
+        maxDistance: this.state.maxDistance,
+        maxPrice: filters.maxPrice,
+        minRating: filters.minRating,
+        tCategory: filters.tCategory,
+        tGender: filters.tGender,
+        tAge: filters.tAge,
+        uCategory: filters.uCategory,
+        uGender: filters.uGender,
+        uAge: filters.uAge,
       },
     });
 
     const { searchTrainer, me, filterUsers } = data.data;
-    this.setState({ ...this.state, trainers: searchTrainer });
 
     // Creates new map instance
     const map = new mapboxgl.Map({
       container: this.mapWrapper,
+      pitch: 90,
       // style: "mapbox://styles/mapbox/streets-v10",
       // style: "mapbox://styles/sumitmahajan/ckh34w2wl2bq419qt74byo3bo",
       style: "mapbox://styles/sumitmahajan/ckikhmng20yeo17p96iy18cvd",
       // center: [me.lat, me.lon],
-      center: [this.state.userLon, this.state.userLat],
-      zoom: 14,
+      center: [this.state.userLon - 0.0055, this.state.userLat],
+      zoom: 14.4,
     });
 
     //Modify default onClick event on entire map except markers
@@ -142,6 +169,13 @@ class HomePage extends React.Component {
       controls: { instructions: true }, // For phone screen it should be false
     });
 
+    this.setState({
+      ...this.state,
+      trainers: searchTrainer,
+      map,
+      directions,
+    });
+
     // Fixed starting point
     directions.setOrigin([this.state.userLon, this.state.userLat]);
 
@@ -149,40 +183,9 @@ class HomePage extends React.Component {
     map.addControl(directions, "top-left");
 
     // Create trainer markers
-    searchTrainer.map((trainer) => {
-      var marker = new mapboxgl.Marker({
-        color: "red",
-      })
-        .setLngLat([trainer.lon, trainer.lat])
-        .addTo(map);
-      marker.getElement().style.cursor = "pointer";
-      marker.getElement().addEventListener("click", (e) => {
-        this.setState({
-          ...this.state,
-          selected: { sel: trainer, type: "t" },
-          className: "map-grid",
-        });
-        directions.setDestination([trainer.lon, trainer.lat]);
-        e.stopPropagation();
-      });
-    });
-
+    this.createTrainerMarkers(searchTrainer);
     // Create user markers
-    filterUsers.map((user) => {
-      var marker = new mapboxgl.Marker()
-        .setLngLat([user.lon, user.lat])
-        .addTo(map);
-      marker.getElement().style.cursor = "pointer";
-      marker.getElement().addEventListener("click", (e) => {
-        this.setState({
-          ...this.state,
-          selected: { sel: user, type: "u" },
-          className: "map-grid",
-        });
-        directions.setDestination([user.lon, user.lat]);
-        e.stopPropagation();
-      });
-    });
+    this.createUserMarkers(filterUsers);
 
     //Current user's permanent location marker
     new mapboxgl.Marker({
@@ -197,16 +200,242 @@ class HomePage extends React.Component {
     })
       .setLngLat([this.state.userLon, this.state.userLat])
       .addTo(map);
+
+    //HIDE INST AND INPUT IN MOBILE
+    let instructions = document.getElementsByClassName(
+      "directions-control-instructions"
+    );
+
+    let input = document.getElementsByClassName("directions-control-inputs");
+
+    const mql = window.matchMedia("(max-width: 960px)");
+    if (mql.matches) {
+      instructions[0].hidden = true;
+      input[0].hidden = true;
+      this.setState({ ...this.state, showInstructions: false });
+    }
+  };
+
+  createTrainerMarkers(searchTrainer) {
+    const { map, directions } = this.state;
+    this.setState({ ...this.state, trainerMarkers: [] });
+
+    searchTrainer.map((trainer) => {
+      let el = document.createElement("div");
+      el.className = "trainer-marker";
+      el.style.backgroundImage = `url(${trainer.images[0]})`;
+
+      //Generate new marker
+      var marker = new mapboxgl.Marker(el, {
+        color: "red",
+      })
+        .setLngLat([trainer.lon, trainer.lat])
+        .addTo(map);
+
+      //store trainer Markers
+      this.setState({
+        ...this.state,
+        trainerMarkers: [...this.state.trainerMarkers, marker],
+      });
+
+      //style
+      marker.getElement().style.cursor = "pointer";
+
+      //on click
+      marker.getElement().addEventListener("click", (e) => {
+        this.setState({
+          ...this.state,
+          selected: { sel: trainer, type: "t" },
+          className: "map-grid",
+        });
+        directions.setDestination([trainer.lon, trainer.lat]);
+        e.stopPropagation();
+      });
+    });
+  }
+
+  createUserMarkers(filterUsers) {
+    const { map, directions } = this.state;
+    this.setState({ ...this.state, userMarkers: [] });
+
+    filterUsers.map((user) => {
+      //Generate a new marker
+      var marker = new mapboxgl.Marker()
+        .setLngLat([user.lon, user.lat])
+        .addTo(map);
+
+      //store user marker
+      this.setState({
+        ...this.state,
+        userMarkers: [...this.state.userMarkers, marker],
+      });
+
+      //styling marker
+      marker.getElement().style.cursor = "pointer";
+
+      //on Marker Click
+      marker.getElement().addEventListener("click", (e) => {
+        this.setState({
+          ...this.state,
+          selected: { sel: user, type: "u" },
+          className: "map-grid",
+        });
+        directions.setDestination([user.lon, user.lat]);
+        e.stopPropagation();
+      });
+    });
+  }
+
+  handleShowInstructions = (e) => {
+    this.setState({
+      ...this.state,
+      showInstructions: !this.state.showInstructions,
+    });
+
+    //HIDE INST AND INPUT IN MOBILE
+    let instructions = document.getElementsByClassName(
+      "directions-control-instructions"
+    );
+
+    let input = document.getElementsByClassName("directions-control-inputs");
+
+    const mql = window.matchMedia("(max-width: 960px)");
+    if (mql.matches) {
+      instructions[0].hidden = true;
+    } else {
+      instructions[0].hidden = this.state.showInstructions;
+    }
+    input[0].hidden = this.state.showInstructions;
+  };
+
+  handleDistanceChange = async (e) => {
+    this.setState({
+      ...this.state,
+      maxDistance: parseInt(e.target.value),
+    });
+
+    const { filters } = this.state;
+
+    try {
+      var data = await client.query({
+        query: searchQuery,
+        variables: {
+          userLat: this.state.userLat,
+          userLon: this.state.userLon,
+          maxDistance: parseInt(e.target.value),
+          maxPrice: filters.maxPrice,
+          minRating: filters.minRating,
+          tCategory: filters.tCategory,
+          tGender: filters.tGender,
+          tAge: filters.tAge,
+          uCategory: filters.uCategory,
+          uGender: filters.uGender,
+          uAge: filters.uAge,
+        },
+      });
+
+      const { searchTrainer, me, filterUsers } = data.data;
+
+      //Remove previous Markers
+      this.state.trainerMarkers.forEach((marker) => marker.remove());
+      this.state.userMarkers.forEach((marker) => marker.remove());
+
+      //Create new markers
+      this.createTrainerMarkers(searchTrainer);
+      this.createUserMarkers(filterUsers);
+
+      this.setState({
+        ...this.state,
+        trainers: searchTrainer,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  handleDialogClose = (e) => {
+    this.setState({
+      ...this.state,
+      openDialog: false,
+    });
+  };
+
+  handleFilter = async (filters) => {
+    // console.log(filters);
+    try {
+      var data = await client.query({
+        query: searchQuery,
+        variables: {
+          userLat: this.state.userLat,
+          userLon: this.state.userLon,
+          maxDistance: this.state.maxDistance,
+          maxPrice: filters.maxPrice,
+          minRating: filters.minRating,
+          tCategory: filters.tCategory,
+          tGender: filters.tGender,
+          tAge: filters.tAge,
+          uCategory: filters.uCategory,
+          uGender: filters.uGender,
+          uAge: filters.uAge,
+        },
+      });
+
+      const { searchTrainer, me, filterUsers } = data.data;
+
+      //Remove previous Markers
+      this.state.trainerMarkers.forEach((marker) => marker.remove());
+      this.state.userMarkers.forEach((marker) => marker.remove());
+
+      //Create new markers
+      this.createTrainerMarkers(searchTrainer);
+      this.createUserMarkers(filterUsers);
+
+      this.setState({
+        ...this.state,
+        trainers: searchTrainer,
+        filters,
+      });
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   render() {
     return (
       <React.Fragment>
+        <HomeDialog
+          openDialog={this.state.openDialog}
+          close={this.handleDialogClose}
+          filter={this.handleFilter}
+        />
         <div className="padded-container">
-          <div className="spaced-between mb2">
-            <h5>People Nearby</h5>
-            <h6 className="primary">Filter & Sort</h6>
+          <div className="filter-grid mb2">
+            <Chipbox
+              className="instructions"
+              text="Show instructions"
+              isSelected={this.state.showInstructions}
+              onClick={this.handleShowInstructions}
+            />
+            {/* <h5>People Nearby</h5> */}
+            <SliderWithTitle
+              className="distance-slider"
+              header="Max Distance"
+              subHeader="HRushi"
+              min={0}
+              max={10}
+              value={this.state.maxDistance}
+              onChange={this.handleDistanceChange}
+            />
+            <Chipbox
+              className="filter-options"
+              text="Filters"
+              // isSelected={this.state.showInstructions}
+              onClick={() => this.setState({ ...this.state, openDialog: true })}
+            />
+
+            {/* <h6 className="primary filter-options">Filter </h6> */}
           </div>
+          <div className="spacing-1"></div>
           <div className={this.state.className}>
             {/* Map Element */}
             <div ref={(el) => (this.mapWrapper = el)} className="map-img" />

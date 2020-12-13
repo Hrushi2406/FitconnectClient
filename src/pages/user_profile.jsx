@@ -20,19 +20,16 @@ const USER_QUERY = gql`
 `;
 
 const UPDATE = gql`
-  mutation UpdateLocation($lat: Float, $lon: Float){
-    updateUserLocation(
-      lat: $lat,
-      lon: $lon
-    )
+  mutation UpdateLocation($lat: Float, $lon: Float) {
+    updateUserLocation(lat: $lat, lon: $lon)
   }
 `;
 
 function UserProfile() {
-  var [userLat, setLat] = useState(0.0)
-  var [userLon, setLon] = useState(0.0)
+  var [userLat, setLat] = useState(0.0);
+  var [userLon, setLon] = useState(0.0);
   const { data, loading, error } = useQuery(USER_QUERY);
-  const [ updateLocation ] = useMutation(UPDATE);
+  const [updateLocation] = useMutation(UPDATE);
 
   navigator.geolocation.getCurrentPosition(function (position) {
     setLat(parseFloat(position.coords.latitude));
@@ -41,8 +38,8 @@ function UserProfile() {
 
   const handleUpdate = () => {
     console.log(userLat, userLon);
-    updateLocation({variables: {lat: userLat,lon: userLon}});
-  }
+    updateLocation({ variables: { lat: userLat, lon: userLon } });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -69,7 +66,7 @@ function UserProfile() {
         description={me.bio}
         button1="Logout"
         onButton1Click={handleLogout}
-        button2="Edit "
+        button2="Update Location "
         onButton2Click={handleUpdate}
       />
     </div>
